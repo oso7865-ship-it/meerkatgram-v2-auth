@@ -25,6 +25,23 @@ public class CookieManager {
         );
     }
 
+    public void removeRefreshTokenToCookie(HttpServletResponse response) {
+        this.setCookie(
+            response,
+            jwtConfig.refreshTokenCookieName(),
+            null,
+            0,
+            jwtConfig.reissueUri()
+        );
+    }
+
+    public Optional<String> getRefreshTokenToCookie(HttpServletRequest request) {
+        return this.getCookie(
+            request,
+            jwtConfig.refreshTokenCookieName()).map(Cookie::getValue)
+        ;
+    }
+
     private Optional<Cookie> getCookie(HttpServletRequest request, String name) {
         // 쿠키 존재 여부 확인
         if (request.getCookies() == null) {

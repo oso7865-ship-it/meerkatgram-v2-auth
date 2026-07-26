@@ -2,12 +2,16 @@ package com.meerkatgramv2auth.domain.auth.service;
 
 import com.meerkatgramv2auth.domain.auth.repository.AuthRepository;
 import com.meerkatgramv2auth.domain.auth.request.LoginRequestDTO;
+import com.meerkatgramv2auth.domain.auth.request.RegistrationRequestDTO;
 import com.meerkatgramv2auth.domain.auth.response.AuthResponseDTO;
 import com.meerkatgramv2auth.domain.user.entity.User;
 import com.meerkatgramv2auth.global.cookie.CookieManager;
+import com.meerkatgramv2auth.global.error.custom.DuplicatedRecordException;
 import com.meerkatgramv2auth.global.error.custom.InvalidTokenException;
 import com.meerkatgramv2auth.global.error.custom.NotRegisteredException;
 import com.meerkatgramv2auth.global.jwt.JwtProvider;
+import com.meerkatgramv2auth.global.security.constant.ProviderPolicy;
+import com.meerkatgramv2auth.global.security.constant.RolePolicy;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -85,6 +89,24 @@ public class AuthService {
         cookieManager.removeRefreshTokenToCookie(response);
 
     }
+    @Transactional(rollbackFor = Exception.class)
+    public void registration(RegistrationRequestDTO request) {
+        if (authRepository.existsByEmail(request.email())) {
+            throw new DuplicatedRecordException("이미 가입된 회원입니다.");
+        }
+
+        User newUser = new User();
+        newUser.setEmail(request.email());
+        newUser.setPassword(passwordEncoder.encode(request.password()));
+        newUser.setNick(request.nick());
+        newUser.setProfile(request.profile());
+        newUser.setProvider(ProviderPolicy.NONE);
+        newUser.setRole(RolePolicy.NORMAL);
+        authRepository.save(newUser);
+
+    }
+
+
 
 
 }

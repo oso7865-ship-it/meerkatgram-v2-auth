@@ -92,7 +92,7 @@ public class AuthController {
     public ResponseEntity<GlobalResponse<Void>> registration(
             @Valid @RequestBody RegistrationRequestDTO requestDTO
             ) {
-        authService.registration((requestDTO));
+        authService.registration(requestDTO);
         return GlobalResponse.success();
     }
 }

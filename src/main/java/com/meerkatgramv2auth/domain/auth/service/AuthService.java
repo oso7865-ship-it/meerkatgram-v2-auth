@@ -5,6 +5,7 @@ import com.meerkatgramv2auth.domain.auth.request.LoginRequestDTO;
 import com.meerkatgramv2auth.domain.auth.request.RegistrationRequestDTO;
 import com.meerkatgramv2auth.domain.auth.response.AuthResponseDTO;
 import com.meerkatgramv2auth.domain.user.entity.User;
+import com.meerkatgramv2auth.global.config.jpa.JPAWithDeleted;
 import com.meerkatgramv2auth.global.cookie.CookieManager;
 import com.meerkatgramv2auth.global.error.custom.DuplicatedRecordException;
 import com.meerkatgramv2auth.global.error.custom.InvalidTokenException;
@@ -89,8 +90,11 @@ public class AuthService {
         cookieManager.removeRefreshTokenToCookie(response);
 
     }
+
+    @JPAWithDeleted
     @Transactional(rollbackFor = Exception.class)
     public void registration(RegistrationRequestDTO request) {
+
         if (authRepository.existsByEmail(request.email())) {
             throw new DuplicatedRecordException("이미 가입된 회원입니다.");
         }

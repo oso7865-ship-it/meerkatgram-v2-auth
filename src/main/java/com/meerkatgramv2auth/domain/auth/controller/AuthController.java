@@ -68,7 +68,6 @@ public class AuthController {
     }
 
     @Operation(summary = "토큰재발급 처리", description = "토큰 재발급")
-    @PreAuthorize("isAuthenticated()")
     @CustomApiResponse(value = {
         CustomResponseCode.INVALID_TOKEN_ERROR,
         CustomResponseCode.DB_ERROR,
@@ -83,7 +82,7 @@ public class AuthController {
 
     @Operation(summary = "회원가입 처리")
     @CustomApiResponse(value = {
-            CustomResponseCode.DUPLICATED_DATA_ERROR,
+            CustomResponseCode.DUPLICATED_RESOURCE_ERROR,
             CustomResponseCode.INVALID_PARAMETER_ERROR,
             CustomResponseCode.DB_ERROR,
             CustomResponseCode.SYSTEM_ERROR

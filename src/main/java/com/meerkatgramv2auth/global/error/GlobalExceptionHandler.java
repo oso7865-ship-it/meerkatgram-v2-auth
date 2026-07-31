@@ -1,9 +1,11 @@
 package com.meerkatgramv2auth.global.error;
 
-import com.meerkatgramv2auth.global.error.custom.*;
+import com.meerkatgramv2auth.global.error.custom.BusinessException;
 import com.meerkatgramv2auth.global.response.GlobalResponse;
 import com.meerkatgramv2auth.global.response.constant.CustomResponseCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -16,7 +18,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import java.sql.SQLException;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -28,14 +29,21 @@ public class GlobalExceptionHandler {
                    .body(GlobalResponse.<Void>from(customResponseCode));
     }
 
-    @ExceptionHandler(NotRegisteredException.class)
-    public ResponseEntity<GlobalResponse<Void>> notRegisteredHandle(NotRegisteredException e) {
-        log.debug(CustomResponseCode.NOT_REGISTERED_ERROR.name(), e);
-        return this.generateErrorResponse(CustomResponseCode.NOT_REGISTERED_ERROR);
+    /**
+     * 미어켓그램의 커스텀 Exceptions 처리
+     * @param e BusinessException
+     */
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<GlobalResponse<Void>> handle(BusinessException e) {
+        log.debug(e.getMessage(), e);
+        return this.generateErrorResponse(e.getCustomResponseCode());
     }
 
+    // -----------------------------------
+    // 이하 Spring에서 발생하는 Exception
+    // -----------------------------------
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<GlobalResponse<Void>> accessDeniedHandle(AccessDeniedException e) {
+    public ResponseEntity<GlobalResponse<Void>> handle(AccessDeniedException e) {
         log.debug(CustomResponseCode.UNAUTHORIZED_ERROR.name(), e);
         // 현재 로그인한 사용자의 정보를 컨텍스트에서 확인
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -49,64 +57,46 @@ public class GlobalExceptionHandler {
         return this.generateErrorResponse(CustomResponseCode.UNAUTHORIZED_ERROR);
     }
 
-    @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<GlobalResponse<Void>> invalidTokenHandle(InvalidTokenException e) {
-        log.debug(CustomResponseCode.INVALID_TOKEN_ERROR.name(), e);
-        return this.generateErrorResponse(CustomResponseCode.INVALID_TOKEN_ERROR);
-    }
-
-    @ExceptionHandler(DeletedRecordException.class)
-    public ResponseEntity<GlobalResponse<Void>> deletedRecordHandle(DeletedRecordException e) {
-        log.debug(CustomResponseCode.NOT_FOUND_DATA_ERROR.name(), e);
-        return this.generateErrorResponse(CustomResponseCode.NOT_FOUND_DATA_ERROR);
-    }
-
-    @ExceptionHandler(DuplicatedRecordException.class)
-    public ResponseEntity<GlobalResponse<Void>> duplicatedRecordHandle(DuplicatedRecordException e) {
-        log.debug(CustomResponseCode.DUPLICATED_DATA_ERROR.name(), e);
-        return this.generateErrorResponse(CustomResponseCode.DUPLICATED_DATA_ERROR);
-    }
-
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<GlobalResponse<Void>> methodArgumentTypeMismatchHandle(MethodArgumentTypeMismatchException e) {
+    public ResponseEntity<GlobalResponse<Void>> handle(MethodArgumentTypeMismatchException e) {
         log.debug(CustomResponseCode.INVALID_PARAMETER_ERROR.name(), String.format("%s : 필드를 확인해 주세요.", e.getName()));
         return this.generateErrorResponse(CustomResponseCode.INVALID_PARAMETER_ERROR);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<GlobalResponse<Void>> methodArgumentNotValidHandle(MethodArgumentNotValidException e) {
+    public ResponseEntity<GlobalResponse<Void>> handle(MethodArgumentNotValidException e) {
         Map<String, String> errors = e.getBindingResult()
-                                         .getFieldErrors()
-                                         .stream()
-                                         .collect(Collectors.toMap(
-                                             FieldError::getField, // 필드명
-                                             fieldError -> fieldError.getDefaultMessage() != null ? fieldError.getDefaultMessage() : "유효하지 않은 값입니다.",
-                                             (existing, replacement) -> existing // 중복 필드가 있을 경우 기존 값 유지
-                                         ));
+             .getFieldErrors()
+             .stream()
+             .collect(Collectors.toMap(
+                 FieldError::getField, // 필드명
+                 fieldError -> fieldError.getDefaultMessage() != null ? fieldError.getDefaultMessage() : "유효하지 않은 값입니다.",
+                 (existing, replacement) -> existing // 중복 필드가 있을 경우 기존 값 유지
+             ));
 
         log.debug(CustomResponseCode.INVALID_PARAMETER_ERROR.name(), errors);
         return this.generateErrorResponse(CustomResponseCode.INVALID_PARAMETER_ERROR);
     }
 
-    @ExceptionHandler(FileManagedException.class)
-    public ResponseEntity<GlobalResponse<Void>> fileManagedHandle(FileManagedException e) {
-        log.debug(CustomResponseCode.FILE_MANAGED_ERROR.name(), e);
-        return this.generateErrorResponse(CustomResponseCode.FILE_MANAGED_ERROR);
-    }
-
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<GlobalResponse<Void>> notFoundHandle(NoResourceFoundException e) {
+    public ResponseEntity<GlobalResponse<Void>> handle(NoResourceFoundException e) {
         return this.generateErrorResponse(CustomResponseCode.NOT_FOUND_ERROR);
     }
 
-    @ExceptionHandler(SQLException.class)
-    public ResponseEntity<GlobalResponse<Void>> sqlHandle(SQLException e) {
+    @ExceptionHandler(DuplicateKeyException.class)
+    public ResponseEntity<GlobalResponse<Void>> handle(DuplicateKeyException e) {
+        log.error("DB 에러", e);
+        return this.generateErrorResponse(CustomResponseCode.DB_DUPLICATED_KEY_ERROR);
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<GlobalResponse<Void>> handle(DataAccessException e) {
         log.error("DB 에러", e);
         return this.generateErrorResponse(CustomResponseCode.DB_ERROR);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<GlobalResponse<Void>> othersHandle(Exception e) {
+    public ResponseEntity<GlobalResponse<Void>> handle(Exception e) {
         log.error("시스템 에러", e);
         return this.generateErrorResponse(CustomResponseCode.SYSTEM_ERROR);
     }

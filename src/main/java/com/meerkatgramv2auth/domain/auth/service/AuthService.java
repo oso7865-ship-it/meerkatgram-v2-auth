@@ -7,9 +7,9 @@ import com.meerkatgramv2auth.domain.auth.response.AuthResponseDTO;
 import com.meerkatgramv2auth.domain.user.entity.User;
 import com.meerkatgramv2auth.global.config.jpa.JPAWithDeleted;
 import com.meerkatgramv2auth.global.cookie.CookieManager;
-import com.meerkatgramv2auth.global.error.custom.DuplicatedRecordException;
-import com.meerkatgramv2auth.global.error.custom.InvalidTokenException;
-import com.meerkatgramv2auth.global.error.custom.NotRegisteredException;
+import com.meerkatgramv2auth.global.error.custom.business.DuplicatedResourceException;
+import com.meerkatgramv2auth.global.error.custom.business.InvalidTokenException;
+import com.meerkatgramv2auth.global.error.custom.business.NotRegisteredException;
 import com.meerkatgramv2auth.global.jwt.JwtProvider;
 import com.meerkatgramv2auth.global.security.constant.ProviderPolicy;
 import com.meerkatgramv2auth.global.security.constant.RolePolicy;
@@ -96,7 +96,7 @@ public class AuthService {
     public void registration(RegistrationRequestDTO request) {
 
         if (authRepository.existsByEmail(request.email())) {
-            throw new DuplicatedRecordException("이미 가입된 회원입니다.");
+            throw new DuplicatedResourceException("이미 가입된 회원입니다.");
         }
 
         User newUser = new User();

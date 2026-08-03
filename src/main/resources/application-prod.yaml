@@ -7,8 +7,8 @@ spring:
     version: v2
   web:
     error:
-      include-stacktrace: always
-      include-message: always
+      include-stacktrace: never
+      include-message: never
 
   servlet:
     multipart:
@@ -28,17 +28,17 @@ spring:
   # JPA
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: none
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         default_batch_fetch_size: 100
     defer-datasource-initialization: true
   sql:
     init:
       data-locations: classpath*:dummy/*.sql
-      mode: always
+      mode: never
       platform: all
 
   # Security & OAuth2
@@ -92,8 +92,8 @@ logging:
   file:
     name: logs/error.log
   level:
-    root: info
-    com.meerkatgramv2auth: debug
+    root: warn
+    com.meerkatgramv2auth: error
 
 
 # Security & JWT

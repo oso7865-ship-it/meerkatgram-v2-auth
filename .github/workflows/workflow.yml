@@ -16,7 +16,7 @@ env:
   MANIFEST_PATH: auth
 
   # 자동으로 수정할 매니페스트 저장소
-  MANIFEST_REPO: oso7865-ship-it/k8s-manifest
+  MANIFEST_REPO: oso7865-ship-it/msa4-k8s-manifest
 
 # 해당 워크플로우가 실행 중 GITHUB_TOKEN에 부여할 권한 설정
 permissions:
